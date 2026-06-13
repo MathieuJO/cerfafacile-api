@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Certificat de cession — CerfaFacile.fr</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bleu: #1A3A5C; --bleu-accent: #2E6DB4; --bleu-clair: #EBF2FB;
+      --vert: #1B7F4F; --vert-clair: #E8F5EE; --gris-fond: #F5F7FA;
+      --gris-bord: #D1D9E6; --texte: #1C2B3A; --texte-doux: #5A6E82;
+      --erreur: #C0392B; --erreur-fond: #FDF0EF; --blanc: #FFFFFF;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--gris-fond); color: var(--texte); min-height: 100vh; }
+
+    header {
+      background: var(--blanc); border-bottom: 1px solid var(--gris-bord);
+      padding: 0 5%; height: 58px; display: flex; align-items: center;
+      justify-content: space-between; position: sticky; top: 0; z-index: 50;
+    }
+    .logo { font-size: 1.1rem; font-weight: 700; color: var(--bleu); text-decoration: none; cursor: pointer; }
+    .logo span { color: var(--bleu-accent); }
+    .header-info { font-size: 0.8rem; color: var(--texte-doux); }
+    .header-secure { font-size: 0.75rem; color: var(--vert); font-weight: 500; }
+
+    .progress-wrapper { background: var(--blanc); border-bottom: 1px solid var(--gris-bord); padding: 0.9rem 5%; }
+    .progress-meta { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+    .progress-label { font-size: 0.78rem; font-weight: 600; color: var(--texte-doux); text-transform: uppercase; letter-spacing: 0.04em; }
+    .progress-count { font-size: 0.78rem; color: var(--texte-doux); }
+    .progress-track { background: var(--gris-bord); height: 5px; border-radius: 10px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--bleu-accent); border-radius: 10px; transition: width 0.4s ease; }
+    .steps-dots { display: flex; gap: 0.4rem; margin-top: 0.7rem; flex-wrap: wrap; }
+    .step-dot { font-size: 0.68rem; font-weight: 500; color: var(--texte-doux); padding: 0.2rem 0.65rem; border-radius: 20px; background: var(--gris-fond); border: 1px solid var(--gris-bord); }
+    .step-dot.active { background: var(--bleu-accent); color: #fff; border-color: var(--bleu-accent); }
+    .step-dot.done { background: var(--vert-clair); color: var(--vert); border-color: #A8D5BC; }
+
+    .main { display: flex; justify-content: center; padding: 2rem 5% 4rem; }
+    .form-shell { width: 100%; max-width: 660px; }
+
+    .question-card {
+      background: var(--blanc); border: 1px solid var(--gris-bord); border-radius: 12px;
+      padding: 2rem; box-shadow: 0 2px 12px rgba(26,58,92,0.06);
+      display: none; animation: slideIn 0.25s ease;
+    }
+    .question-card.active { display: block; }
+    @keyframes slideIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+    .q-tag { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--bleu-accent); margin-bottom: 0.5rem; }
+    .q-title { font-size: 1.2rem; font-weight: 700; color: var(--bleu); margin-bottom: 0.3rem; line-height: 1.3; }
+    .q-hint { font-size: 0.85rem; color: var(--texte-doux); margin-bottom: 1.4rem; line-height: 1.5; }
+
+    .field { margin-bottom: 1rem; }
+    .field-row { display: grid; gap: 0.8rem; margin-bottom: 1rem; }
+    .col2 { grid-template-columns: 1fr 1fr; }
+    .col3 { grid-template-columns: 1fr 1fr 1fr; }
+
+    label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--texte); margin-bottom: 0.35rem; }
+    label .opt { font-weight: 400; color: var(--texte-doux); font-size: 0.72rem; }
+
+    input[type="text"], input[type="date"], input[type="number"], select, input[type="email"] {
+      width: 100%; border: 1.5px solid var(--gris-bord); border-radius: 7px; padding: 0.72rem 0.9rem;
+      font-size: 0.92rem; font-family: 'Inter', sans-serif; color: var(--texte); background: var(--blanc);
+      transition: border-color 0.2s, box-shadow 0.2s; outline: none; appearance: none;
+    }
+    input:focus, select:focus { border-color: var(--bleu-accent); box-shadow: 0 0 0 3px rgba(46,109,180,0.1); }
+    input.err { border-color: var(--erreur); background: var(--erreur-fond); }
+    .ferr { font-size: 0.74rem; color: var(--erreur); margin-top: 0.3rem; display: none; }
+    .ferr.show { display: block; }
+
+    .chips { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .chip { padding: 0.5rem 1rem; border: 1.5px solid var(--gris-bord); border-radius: 6px; font-size: 0.85rem; font-weight: 500; color: var(--texte); cursor: pointer; transition: all 0.15s; background: var(--blanc); user-select: none; }
+    .chip:hover { border-color: var(--bleu-accent); color: var(--bleu-accent); }
+    .chip.sel { background: var(--bleu-clair); border-color: var(--bleu-accent); color: var(--bleu-accent); font-weight: 600; }
+
+    .info-box { background: var(--bleu-clair); border: 1px solid #C2D9F0; border-radius: 7px; padding: 0.8rem 1rem; font-size: 0.8rem; color: var(--bleu); line-height: 1.5; margin-top: 1rem; display: flex; gap: 0.6rem; }
+
+    .nav-btns { display: flex; justify-content: space-between; align-items: center; margin-top: 1.6rem; }
+    .btn-back { background: none; border: none; color: var(--texte-doux); font-size: 0.88rem; font-weight: 500; cursor: pointer; padding: 0.5rem; font-family: 'Inter', sans-serif; transition: color 0.2s; }
+    .btn-back:hover { color: var(--bleu); }
+    .btn-back:disabled { opacity: 0; pointer-events: none; }
+    .btn-next { background: var(--bleu-accent); color: #fff; border: none; padding: 0.82rem 1.8rem; border-radius: 7px; font-size: 0.92rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.2s; }
+    .btn-next:hover { background: #1d5a9e; }
+
+    /* RECAP */
+    .recap-sec { margin-bottom: 1.2rem; }
+    .recap-sec-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--texte-doux); border-bottom: 1px solid var(--gris-bord); padding-bottom: 0.4rem; margin-bottom: 0.7rem; }
+    .recap-row { display: flex; justify-content: space-between; padding: 0.35rem 0; font-size: 0.85rem; gap: 1rem; }
+    .recap-key { color: var(--texte-doux); min-width: 150px; flex-shrink: 0; }
+    .recap-val { font-weight: 600; text-align: right; }
+
+    /* PAIEMENT */
+    .pay-box { border: 2px solid var(--bleu-accent); border-radius: 10px; padding: 1.4rem; margin-top: 1.4rem; }
+    .pay-total { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; }
+    .pay-label { font-size: 0.92rem; font-weight: 600; }
+    .pay-price { font-size: 1.6rem; font-weight: 700; color: var(--bleu); }
+    .btn-pay { width: 100%; background: var(--bleu-accent); color: #fff; border: none; padding: 1rem; border-radius: 7px; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 0.8rem; transition: background 0.2s; }
+    .btn-pay:hover { background: #1d5a9e; }
+    .pay-reassurance { display: flex; justify-content: center; gap: 1.2rem; flex-wrap: wrap; }
+    .pay-reassurance span { font-size: 0.73rem; color: var(--texte-doux); }
+
+    /* SUCCÈS */
+    .success-card { text-align: center; padding: 2.5rem 1.5rem; }
+    .success-icon { width: 65px; height: 65px; background: var(--vert-clair); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.2rem; font-size: 1.8rem; }
+    .success-card h2 { font-size: 1.35rem; font-weight: 700; color: var(--bleu); margin-bottom: 0.5rem; }
+    .success-card p { color: var(--texte-doux); font-size: 0.88rem; margin-bottom: 1.6rem; line-height: 1.6; }
+    .btn-dl { display: inline-flex; align-items: center; gap: 0.6rem; background: var(--vert); color: #fff; padding: 0.9rem 2rem; border-radius: 7px; font-size: 0.95rem; font-weight: 700; cursor: pointer; border: none; font-family: 'Inter', sans-serif; transition: background 0.2s; }
+    .btn-dl:hover { background: #166040; }
+
+    .trust-pills { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+    .trust-pill { display: flex; align-items: center; gap: 0.6rem; font-size: 0.76rem; color: var(--texte-doux); background: var(--blanc); border: 1px solid var(--gris-bord); border-radius: 7px; padding: 0.55rem 0.9rem; }
+
+    @media (max-width: 520px) {
+      .question-card { padding: 1.4rem; }
+      .col2, .col3 { grid-template-columns: 1fr; }
+      .steps-dots { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="logo">Cerfa<span>Facile</span>.fr</a>
+  <div class="header-info">Certificat de cession · Cerfa 15776*02</div>
+  <div class="header-secure">🔒 Sécurisé</div>
+</header>
+
+<div class="progress-wrapper">
+  <div class="progress-meta">
+    <div class="progress-label" id="sectionLabel">Véhicule</div>
+    <div class="progress-count" id="stepCount">Étape 1 sur 6</div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:10%"></div></div>
+  <div class="steps-dots">
+    <div class="step-dot active" data-s="0">Véhicule</div>
+    <div class="step-dot" data-s="1">Vendeur</div>
+    <div class="step-dot" data-s="2">Acheteur</div>
+    <div class="step-dot" data-s="3">Cession</div>
+    <div class="step-dot" data-s="4">Récapitulatif</div>
+    <div class="step-dot" data-s="5">Paiement</div>
+  </div>
+</div>
+
+<div class="main">
+<div class="form-shell">
+
+<!-- ══ ÉTAPE 1 — VÉHICULE ══ -->
+<div class="question-card active" data-step="0">
+  <div class="q-tag">Véhicule · 1 / 6</div>
+  <div class="q-title">Le véhicule cédé</div>
+  <div class="q-hint">Retrouvez ces informations sur votre carte grise.</div>
+
+  <div class="field"><label>Numéro d'immatriculation (A)</label><input type="text" id="immat" placeholder="AB-123-CD" style="text-transform:uppercase;font-weight:600;letter-spacing:0.05em"/><div class="ferr" id="e_immat">Requis.</div></div>
+  <div class="field-row col2">
+    <div class="field"><label>Marque (D.1)</label><input type="text" id="marque" placeholder="Renault"/><div class="ferr" id="e_marque">Requis.</div></div>
+    <div class="field"><label>Dénomination commerciale (D.3)</label><input type="text" id="modele" placeholder="Clio"/><div class="ferr" id="e_modele">Requis.</div></div>
+  </div>
+  <div class="field"><label>Type / variante / version (D.2) <span class="opt">(facultatif)</span></label><input type="text" id="type_variante" placeholder="ex: BERLINE 5P"/></div>
+  <div class="field"><label>Genre national (J.1) <span class="opt">(facultatif)</span></label>
+    <select id="genre_national">
+      <option value="">-- Sélectionner --</option>
+      <option value="VP">VP — Voiture particulière</option>
+      <option value="CTTE">CTTE — Camionnette</option>
+      <option value="TCP">TCP — Taxi / VTC</option>
+      <option value="MTL">MTL — Motocyclette légère</option>
+      <option value="MT">MT — Motocyclette</option>
+      <option value="TRR">TRR — Tracteur routier</option>
+      <option value="CAM">CAM — Camion</option>
+      <option value="REM">REM — Remorque</option>
+    </select>
+  </div>
+  <div class="field"><label>Numéro d'identification du véhicule — VIN (E) <span class="opt">(facultatif)</span></label><input type="text" id="vin" placeholder="VF1BBA0F500000000" style="letter-spacing:0.05em"/></div>
+  <div class="field-row col3">
+    <div class="field"><label>Jour 1ère immat. (B)</label><input type="text" id="mec_j" placeholder="15" maxlength="2"/><div class="ferr" id="e_mec_j">Requis.</div></div>
+    <div class="field"><label>Mois</label><input type="text" id="mec_m" placeholder="06" maxlength="2"/><div class="ferr" id="e_mec_m">Requis.</div></div>
+    <div class="field"><label>Année</label><input type="text" id="mec_a" placeholder="2018" maxlength="4"/><div class="ferr" id="e_mec_a">Requis.</div></div>
+  </div>
+  <div class="field"><label>Kilométrage au compteur</label><input type="number" id="km" placeholder="87000" min="0"/><div class="ferr" id="e_km">Requis.</div></div>
+
+  <div class="field"><label>Présence du certificat d'immatriculation</label>
+    <div class="chips" id="chips_ci">
+      <div class="chip sel" data-val="oui" onclick="selectChip(this,'chips_ci')">OUI</div>
+      <div class="chip" data-val="non" onclick="selectChip(this,'chips_ci')">NON</div>
+    </div>
+  </div>
+  <div class="field" id="zone_formule">
+    <label>Numéro de formule <span class="opt">(figure sur la carte grise)</span></label>
+    <input type="text" id="num_formule" placeholder="2026WW000000"/>
+  </div>
+
+  <div class="info-box">📋 Informations disponibles sur votre carte grise — champ (A) pour l'immatriculation, (B) pour la date, (E) pour le VIN.</div>
+  <div class="nav-btns">
+    <button class="btn-back" disabled>← Retour</button>
+    <button class="btn-next" onclick="goNext(0)">Continuer →</button>
+  </div>
+</div>
+
+<!-- ══ ÉTAPE 2 — VENDEUR ══ -->
+<div class="question-card" data-step="1">
+  <div class="q-tag">Vendeur · 2 / 6</div>
+  <div class="q-title">L'ancien propriétaire</div>
+  <div class="q-hint">Vos informations telles qu'elles figurent sur votre pièce d'identité.</div>
+
+  <div class="field"><label>Vous êtes</label>
+    <div class="chips" id="chips_vendeur_type">
+      <div class="chip sel" data-val="physique" onclick="selectChip(this,'chips_vendeur_type')">Personne physique</div>
+      <div class="chip" data-val="morale" onclick="selectChip(this,'chips_vendeur_type')">Personne morale (société)</div>
+    </div>
+  </div>
+  <div class="field" id="zone_vendeur_sexe"><label>Sexe</label>
+    <div class="chips" id="chips_vendeur_sexe">
+      <div class="chip sel" data-val="M" onclick="selectChip(this,'chips_vendeur_sexe')">Masculin</div>
+      <div class="chip" data-val="F" onclick="selectChip(this,'chips_vendeur_sexe')">Féminin</div>
+    </div>
+  </div>
+  <div class="field-row col2">
+    <div class="field"><label>Nom</label><input type="text" id="vendeur_nom" placeholder="MARTIN"/><div class="ferr" id="e_vendeur_nom">Requis.</div></div>
+    <div class="field"><label>Prénom</label><input type="text" id="vendeur_prenom" placeholder="Jean"/><div class="ferr" id="e_vendeur_prenom">Requis.</div></div>
+  </div>
+  <div class="field-row col3">
+    <div class="field"><label>N° de voie</label><input type="text" id="vendeur_num_voie" placeholder="12"/></div>
+    <div class="field"><label>Extension <span class="opt">(bis, ter...)</span></label><input type="text" id="vendeur_ext" placeholder="bis"/></div>
+    <div class="field"><label>Type de voie</label><input type="text" id="vendeur_type_voie" placeholder="rue"/></div>
+  </div>
+  <div class="field"><label>Nom de la voie</label><input type="text" id="vendeur_nom_voie" placeholder="de la Paix"/><div class="ferr" id="e_vendeur_adresse">Requis.</div></div>
+  <div class="field-row col2">
+    <div class="field"><label>Code postal</label><input type="text" id="vendeur_cp" placeholder="75001" maxlength="5"/><div class="ferr" id="e_vendeur_cp">Code postal invalide.</div></div>
+    <div class="field"><label>Ville</label><input type="text" id="vendeur_ville" placeholder="Paris"/><div class="ferr" id="e_vendeur_ville">Requis.</div></div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn-back" onclick="goBack(1)">← Retour</button>
+    <button class="btn-next" onclick="goNext(1)">Continuer →</button>
+  </div>
+</div>
+
+<!-- ══ ÉTAPE 3 — ACHETEUR ══ -->
+<div class="question-card" data-step="2">
+  <div class="q-tag">Acheteur · 3 / 6</div>
+  <div class="q-title">Le nouveau propriétaire</div>
+  <div class="q-hint">Informations de l'acheteur telles qu'elles figurent sur sa pièce d'identité.</div>
+
+  <div class="field"><label>Il/elle est</label>
+    <div class="chips" id="chips_acheteur_type">
+      <div class="chip sel" data-val="physique" onclick="selectChip(this,'chips_acheteur_type')">Personne physique</div>
+      <div class="chip" data-val="morale" onclick="selectChip(this,'chips_acheteur_type')">Personne morale (société)</div>
+    </div>
+  </div>
+  <div class="field" id="zone_acheteur_sexe"><label>Sexe</label>
+    <div class="chips" id="chips_acheteur_sexe">
+      <div class="chip sel" data-val="M" onclick="selectChip(this,'chips_acheteur_sexe')">Masculin</div>
+      <div class="chip" data-val="F" onclick="selectChip(this,'chips_acheteur_sexe')">Féminin</div>
+    </div>
+  </div>
+  <div class="field-row col2">
+    <div class="field"><label>Nom</label><input type="text" id="acheteur_nom" placeholder="DUPONT"/><div class="ferr" id="e_acheteur_nom">Requis.</div></div>
+    <div class="field"><label>Prénom</label><input type="text" id="acheteur_prenom" placeholder="Claire"/><div class="ferr" id="e_acheteur_prenom">Requis.</div></div>
+  </div>
+  <div class="field-row col3">
+    <div class="field"><label>Date de naissance — Jour</label><input type="text" id="acheteur_nais_j" placeholder="01" maxlength="2"/></div>
+    <div class="field"><label>Mois</label><input type="text" id="acheteur_nais_m" placeholder="01" maxlength="2"/></div>
+    <div class="field"><label>Année</label><input type="text" id="acheteur_nais_a" placeholder="1985" maxlength="4"/></div>
+  </div>
+  <div class="field"><label>Lieu de naissance <span class="opt">(facultatif)</span></label><input type="text" id="acheteur_nais_lieu" placeholder="Lyon"/></div>
+  <div class="field-row col3">
+    <div class="field"><label>N° de voie</label><input type="text" id="acheteur_num_voie" placeholder="8"/></div>
+    <div class="field"><label>Extension</label><input type="text" id="acheteur_ext" placeholder=""/></div>
+    <div class="field"><label>Type de voie</label><input type="text" id="acheteur_type_voie" placeholder="avenue"/></div>
+  </div>
+  <div class="field"><label>Nom de la voie</label><input type="text" id="acheteur_nom_voie" placeholder="Victor Hugo"/><div class="ferr" id="e_acheteur_adresse">Requis.</div></div>
+  <div class="field-row col2">
+    <div class="field"><label>Code postal</label><input type="text" id="acheteur_cp" placeholder="69001" maxlength="5"/><div class="ferr" id="e_acheteur_cp">Code postal invalide.</div></div>
+    <div class="field"><label>Ville</label><input type="text" id="acheteur_ville" placeholder="Lyon"/><div class="ferr" id="e_acheteur_ville">Requis.</div></div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn-back" onclick="goBack(2)">← Retour</button>
+    <button class="btn-next" onclick="goNext(2)">Continuer →</button>
+  </div>
+</div>
+
+<!-- ══ ÉTAPE 4 — CESSION ══ -->
+<div class="question-card" data-step="3">
+  <div class="q-tag">Cession · 4 / 6</div>
+  <div class="q-title">Détails de la cession</div>
+  <div class="q-hint">La date, l'heure et le lieu de la cession du véhicule.</div>
+
+  <div class="field"><label>Type de cession</label>
+    <div class="chips" id="chips_type_cession">
+      <div class="chip sel" data-val="ceder" onclick="selectChip(this,'chips_type_cession')">Céder (vente / don)</div>
+      <div class="chip" data-val="destruction" onclick="selectChip(this,'chips_type_cession')">Céder pour destruction</div>
+    </div>
+  </div>
+  <div class="field-row col3">
+    <div class="field"><label>Date de cession — Jour</label><input type="text" id="vente_j" placeholder="13" maxlength="2"/><div class="ferr" id="e_vente_j">Requis.</div></div>
+    <div class="field"><label>Mois</label><input type="text" id="vente_m" placeholder="06" maxlength="2"/><div class="ferr" id="e_vente_m">Requis.</div></div>
+    <div class="field"><label>Année</label><input type="text" id="vente_a" placeholder="2026" maxlength="4"/><div class="ferr" id="e_vente_a">Requis.</div></div>
+  </div>
+  <div class="field-row col2">
+    <div class="field"><label>Heure</label><input type="text" id="vente_h" placeholder="14" maxlength="2"/></div>
+    <div class="field"><label>Minutes</label><input type="text" id="vente_min" placeholder="30" maxlength="2"/></div>
+  </div>
+  <div class="field"><label>Lieu de la cession</label><input type="text" id="lieu_cession" placeholder="Paris"/><div class="ferr" id="e_lieu">Requis.</div></div>
+  <div class="field"><label>Prix de vente (€) <span class="opt">(facultatif)</span></label><input type="number" id="prix" placeholder="4500" min="0"/></div>
+
+  <div class="info-box">ℹ️ La date et l'heure doivent correspondre au moment exact de la remise des clés.</div>
+  <div class="nav-btns">
+    <button class="btn-back" onclick="goBack(3)">← Retour</button>
+    <button class="btn-next" onclick="goNext(3)">Vérifier →</button>
+  </div>
+</div>
+
+<!-- ══ ÉTAPE 5 — RÉCAPITULATIF ══ -->
+<div class="question-card" data-step="4">
+  <div class="q-tag">Récapitulatif · 5 / 6</div>
+  <div class="q-title">Vérifiez vos informations</div>
+  <div class="q-hint">Relisez attentivement avant de payer. Cliquez "Retour" pour corriger.</div>
+
+  <div class="recap-sec"><div class="recap-sec-title">Véhicule</div>
+    <div class="recap-row"><span class="recap-key">Immatriculation</span><span class="recap-val" id="r_immat">—</span></div>
+    <div class="recap-row"><span class="recap-key">Marque / Modèle</span><span class="recap-val" id="r_marque">—</span></div>
+    <div class="recap-row"><span class="recap-key">1ère mise en circulation</span><span class="recap-val" id="r_mec">—</span></div>
+    <div class="recap-row"><span class="recap-key">Kilométrage</span><span class="recap-val" id="r_km">—</span></div>
+    <div class="recap-row"><span class="recap-key">VIN</span><span class="recap-val" id="r_vin">—</span></div>
+  </div>
+  <div class="recap-sec"><div class="recap-sec-title">Vendeur</div>
+    <div class="recap-row"><span class="recap-key">Nom et prénom</span><span class="recap-val" id="r_vendeur">—</span></div>
+    <div class="recap-row"><span class="recap-key">Adresse</span><span class="recap-val" id="r_vendeur_adresse">—</span></div>
+  </div>
+  <div class="recap-sec"><div class="recap-sec-title">Acheteur</div>
+    <div class="recap-row"><span class="recap-key">Nom et prénom</span><span class="recap-val" id="r_acheteur">—</span></div>
+    <div class="recap-row"><span class="recap-key">Date de naissance</span><span class="recap-val" id="r_acheteur_nais">—</span></div>
+    <div class="recap-row"><span class="recap-key">Adresse</span><span class="recap-val" id="r_acheteur_adresse">—</span></div>
+  </div>
+  <div class="recap-sec"><div class="recap-sec-title">Cession</div>
+    <div class="recap-row"><span class="recap-key">Date et heure</span><span class="recap-val" id="r_date_cession">—</span></div>
+    <div class="recap-row"><span class="recap-key">Lieu</span><span class="recap-val" id="r_lieu">—</span></div>
+    <div class="recap-row"><span class="recap-key">Prix</span><span class="recap-val" id="r_prix">—</span></div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn-back" onclick="goBack(4)">← Corriger</button>
+    <button class="btn-next" onclick="goNext(4)">Tout est correct →</button>
+  </div>
+</div>
+
+<!-- ══ ÉTAPE 6 — PAIEMENT ══ -->
+<div class="question-card" data-step="5">
+  <div class="q-tag">Paiement · 6 / 6</div>
+  <div class="q-title">Votre document est prêt !</div>
+  <div class="q-hint">Procédez au paiement pour télécharger votre Cerfa officiel pré-rempli.</div>
+  <div class="pay-box">
+    <div class="pay-total">
+      <div class="pay-label">Certificat de cession · Cerfa 15776*02</div>
+      <div class="pay-price">2,99 €</div>
+    </div>
+    <button class="btn-pay" onclick="simulatePay()" id="payBtn">🔒 Payer par carte bancaire</button>
+    <div class="pay-reassurance">
+      <span>🔒 SSL sécurisé</span>
+      <span>🇫🇷 Données non conservées</span>
+      <span>⚡ PDF immédiat</span>
+    </div>
+  </div>
+  <div class="nav-btns">
+    <button class="btn-back" onclick="goBack(5)">← Retour</button>
+    <div></div>
+  </div>
+</div>
+
+<!-- ══ SUCCÈS ══ -->
+<div class="question-card" data-step="6">
+  <div class="success-card">
+    <div class="success-icon">✅</div>
+    <h2>Paiement confirmé !</h2>
+    <p>Votre certificat de cession est prêt. Téléchargez-le, imprimez-le en <strong>deux exemplaires</strong> et signez-le.</p>
+    <button class="btn-dl" onclick="telechargerCerfa()" id="btnTelecharger">⬇ Télécharger mon Cerfa officiel</button>
+    <div style="margin-top:1.2rem;padding:0.9rem;background:var(--bleu-clair);border-radius:8px;font-size:0.8rem;color:var(--bleu);line-height:1.6;text-align:left;">
+      <strong>Après la cession :</strong> Le vendeur doit déclarer la cession sur <strong>histovec.interieur.gouv.fr</strong> dans les 15 jours.
+    </div>
+    <div style="margin-top:1rem;">
+      <button class="btn-back" style="color:var(--bleu-accent);font-weight:600;" onclick="resetForm()">← Nouveau document</button>
+    </div>
+  </div>
+</div>
+
+<div class="trust-pills">
+  <div class="trust-pill">🔒 Données non stockées après génération</div>
+  <div class="trust-pill">📋 Cerfa 15776*02 — Version officielle à jour</div>
+  <div class="trust-pill">💳 Paiement sécurisé Stripe — Visa, Mastercard, CB</div>
+</div>
+
+</div>
+</div>
+
+<script>
+const API_URL = 'https://cerfafacile-api.onrender.com/generer-cerfa';
+
+let currentStep = 0;
+const SECTIONS = ['Véhicule','Vendeur','Acheteur','Cession','Récapitulatif','Paiement','Terminé'];
+const PROGRESS  = [10, 25, 45, 62, 78, 92, 100];
+
+function updateUI(step) {
+  document.querySelectorAll('.question-card').forEach((c,i) => c.classList.toggle('active', i===step));
+  document.getElementById('sectionLabel').textContent = SECTIONS[step]||'';
+  document.getElementById('stepCount').textContent = step < 6 ? `Étape ${step+1} sur 6` : 'Terminé';
+  document.getElementById('progressFill').style.width = PROGRESS[step]+'%';
+  document.querySelectorAll('.step-dot').forEach((d,i) => {
+    d.classList.remove('active','done');
+    if(i===step) d.classList.add('active');
+    if(i<step)   d.classList.add('done');
+  });
+  window.scrollTo(0,0);
+}
+
+function g(id) { const el=document.getElementById(id); return el ? el.value.trim() : ''; }
+
+function req(id,errId) {
+  const ok = !!g(id);
+  document.getElementById(id)?.classList.toggle('err',!ok);
+  const e = document.getElementById(errId);
+  if(e) e.classList.toggle('show',!ok);
+  return ok;
+}
+function validCP(id,errId) {
+  const ok = /^\d{5}$/.test(g(id));
+  document.getElementById(id)?.classList.toggle('err',!ok);
+  const e = document.getElementById(errId);
+  if(e) e.classList.toggle('show',!ok);
+  return ok;
+}
+
+const validators = {
+  0: () => [req('immat','e_immat'), req('marque','e_marque'), req('modele','e_modele'),
+            req('mec_j','e_mec_j'), req('mec_m','e_mec_m'), req('mec_a','e_mec_a'),
+            req('km','e_km')].every(Boolean),
+  1: () => [req('vendeur_nom','e_vendeur_nom'), req('vendeur_prenom','e_vendeur_prenom'),
+            req('vendeur_nom_voie','e_vendeur_adresse'),
+            validCP('vendeur_cp','e_vendeur_cp'), req('vendeur_ville','e_vendeur_ville')].every(Boolean),
+  2: () => [req('acheteur_nom','e_acheteur_nom'), req('acheteur_prenom','e_acheteur_prenom'),
+            req('acheteur_nom_voie','e_acheteur_adresse'),
+            validCP('acheteur_cp','e_acheteur_cp'), req('acheteur_ville','e_acheteur_ville')].every(Boolean),
+  3: () => [req('vente_j','e_vente_j'), req('vente_m','e_vente_m'), req('vente_a','e_vente_a'),
+            req('lieu_cession','e_lieu')].every(Boolean),
+};
+
+function goNext(step) {
+  if(validators[step] && !validators[step]()) return;
+  if(step===3) fillRecap();
+  currentStep = step+1;
+  updateUI(currentStep);
+}
+function goBack(step) { currentStep=step-1; updateUI(currentStep); }
+
+function fillRecap() {
+  document.getElementById('r_immat').textContent      = g('immat').toUpperCase();
+  document.getElementById('r_marque').textContent     = g('marque')+' '+g('modele');
+  document.getElementById('r_mec').textContent        = g('mec_j')+'/'+g('mec_m')+'/'+g('mec_a');
+  document.getElementById('r_km').textContent         = Number(g('km')).toLocaleString('fr-FR')+' km';
+  document.getElementById('r_vin').textContent        = g('vin')||'—';
+  document.getElementById('r_vendeur').textContent    = g('vendeur_prenom')+' '+g('vendeur_nom').toUpperCase();
+  document.getElementById('r_vendeur_adresse').textContent = g('vendeur_num_voie')+' '+g('vendeur_type_voie')+' '+g('vendeur_nom_voie')+', '+g('vendeur_cp')+' '+g('vendeur_ville');
+  document.getElementById('r_acheteur').textContent   = g('acheteur_prenom')+' '+g('acheteur_nom').toUpperCase();
+  const nais = g('acheteur_nais_j') ? g('acheteur_nais_j')+'/'+g('acheteur_nais_m')+'/'+g('acheteur_nais_a') : '—';
+  document.getElementById('r_acheteur_nais').textContent = nais;
+  document.getElementById('r_acheteur_adresse').textContent = g('acheteur_num_voie')+' '+g('acheteur_type_voie')+' '+g('acheteur_nom_voie')+', '+g('acheteur_cp')+' '+g('acheteur_ville');
+  document.getElementById('r_date_cession').textContent = g('vente_j')+'/'+g('vente_m')+'/'+g('vente_a')+' à '+g('vente_h')+'h'+g('vente_min');
+  document.getElementById('r_lieu').textContent       = g('lieu_cession');
+  document.getElementById('r_prix').textContent       = g('prix') ? Number(g('prix')).toLocaleString('fr-FR')+' €' : '—';
+}
+
+function selectChip(el, groupId) {
+  document.querySelectorAll('#'+groupId+' .chip').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function getChip(groupId) {
+  return document.querySelector('#'+groupId+' .chip.sel')?.dataset?.val || '';
+}
+
+function simulatePay() {
+  const btn = document.getElementById('payBtn');
+  btn.textContent = '⏳ Traitement...';
+  btn.disabled = true;
+  setTimeout(() => { currentStep=6; updateUI(6); }, 1200);
+}
+
+async function telechargerCerfa() {
+  const btn = document.getElementById('btnTelecharger');
+  btn.textContent = '⏳ Génération du Cerfa...';
+  btn.disabled = true;
+
+  const payload = {
+    immat:              g('immat').toUpperCase(),
+    marque:             g('marque'),
+    modele:             g('modele'),
+    type_variante:      g('type_variante'),
+    genre_national:     g('genre_national'),
+    vin:                g('vin'),
+    mec_j:              g('mec_j').padStart(2,'0'),
+    mec_m:              g('mec_m').padStart(2,'0'),
+    mec_a:              g('mec_a'),
+    km:                 g('km'),
+    ci_present:         getChip('chips_ci'),
+    num_formule:        g('num_formule'),
+    vendeur_type:       getChip('chips_vendeur_type'),
+    vendeur_sexe:       getChip('chips_vendeur_sexe'),
+    vendeur_nom:        g('vendeur_nom'),
+    vendeur_prenom:     g('vendeur_prenom'),
+    vendeur_num_voie:   g('vendeur_num_voie'),
+    vendeur_ext:        g('vendeur_ext'),
+    vendeur_type_voie:  g('vendeur_type_voie'),
+    vendeur_nom_voie:   g('vendeur_nom_voie'),
+    vendeur_cp:         g('vendeur_cp'),
+    vendeur_ville:      g('vendeur_ville'),
+    acheteur_type:      getChip('chips_acheteur_type'),
+    acheteur_sexe:      getChip('chips_acheteur_sexe'),
+    acheteur_nom:       g('acheteur_nom'),
+    acheteur_prenom:    g('acheteur_prenom'),
+    acheteur_nais_j:    g('acheteur_nais_j').padStart(2,'0'),
+    acheteur_nais_m:    g('acheteur_nais_m').padStart(2,'0'),
+    acheteur_nais_a:    g('acheteur_nais_a'),
+    acheteur_nais_lieu: g('acheteur_nais_lieu'),
+    acheteur_num_voie:  g('acheteur_num_voie'),
+    acheteur_ext:       g('acheteur_ext'),
+    acheteur_type_voie: g('acheteur_type_voie'),
+    acheteur_nom_voie:  g('acheteur_nom_voie'),
+    acheteur_cp:        g('acheteur_cp'),
+    acheteur_ville:     g('acheteur_ville'),
+    type_cession:       getChip('chips_type_cession'),
+    vente_j:            g('vente_j').padStart(2,'0'),
+    vente_m:            g('vente_m').padStart(2,'0'),
+    vente_a:            g('vente_a'),
+    vente_h:            g('vente_h').padStart(2,'0'),
+    vente_min:          g('vente_min').padStart(2,'0'),
+    lieu_cession:       g('lieu_cession'),
+    prix:               g('prix'),
+  };
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!response.ok) { const e=await response.json(); throw new Error(e.error||'Erreur serveur'); }
+    const blob = await response.blob();
+    const url  = window.URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'cerfa-cession-'+payload.immat+'.pdf';
+    document.body.appendChild(a); a.click(); a.remove();
+    window.URL.revokeObjectURL(url);
+    btn.textContent = '✅ Téléchargé !';
+    btn.style.background = '#1B7F4F';
+  } catch(e) {
+    btn.textContent = '⬇ Télécharger mon Cerfa officiel';
+    btn.disabled = false;
+    alert('Erreur : '+e.message);
+  }
+}
+
+function resetForm() {
+  currentStep = 0;
+  document.querySelectorAll('input').forEach(i=>i.value='');
+  document.querySelectorAll('select').forEach(s=>s.selectedIndex=0);
+  document.querySelectorAll('.chip.sel').forEach(c=>c.classList.remove('sel'));
+  document.querySelectorAll('.chip:first-child').forEach(c=>c.classList.add('sel'));
+  const btn=document.getElementById('payBtn');
+  btn.textContent='🔒 Payer par carte bancaire'; btn.disabled=false;
+  updateUI(0);
+}
+
+// Afficher/masquer numéro formule selon présence CI
+document.getElementById('chips_ci').addEventListener('click', () => {
+  const val = getChip('chips_ci');
+  document.getElementById('zone_formule').style.display = val==='oui' ? 'block' : 'none';
+});
+</script>
+</body>
+</html>
