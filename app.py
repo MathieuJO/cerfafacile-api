@@ -7,7 +7,7 @@ from datetime import datetime
 app = Flask(__name__)
 CORS(app)  # Autorise TOUS les domaines
 
-CERFA_PATH = os.path.join(os.path.dirname(__file__), "cerfa_15776-01_cession_véhicule.pdf")
+CERFA_PATH = os.path.join(os.path.dirname(__file__), "cerfa.pdf")
 
 @app.route("/")
 def index():
@@ -142,4 +142,3 @@ def generer_cerfa():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
