@@ -1,6 +1,7 @@
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
 from pypdf import PdfReader, PdfWriter
+from pypdf.generic import NameObject
 import os, io, base64
 from datetime import datetime
 from reportlab.pdfgen import canvas as rl_canvas
@@ -196,6 +197,32 @@ def generer_cerfa():
 
         writer.update_page_form_field_values(writer.pages[0], fields, auto_regenerate=False)
         writer.update_page_form_field_values(writer.pages[1], fields, auto_regenerate=False)
+
+        # Fix radio button visual appearance: pypdf ne met pas à jour /AS automatiquement
+        # sans auto_regenerate, donc on le fait manuellement pour chaque kid.
+        for page in writer.pages:
+            if '/Annots' not in page:
+                continue
+            for annot_ref in page['/Annots']:
+                try:
+                    annot = annot_ref.get_object()
+                    if '/Parent' not in annot:
+                        continue
+                    parent = annot['/Parent'].get_object()
+                    if parent.get('/FT') != '/Btn':
+                        continue
+                    parent_v = parent.get('/V', '/Off')
+                    ap = annot.get('/AP', {})
+                    ap_obj = ap.get_object() if hasattr(ap, 'get_object') else ap
+                    ap_n = ap_obj.get('/N', {})
+                    ap_n_obj = ap_n.get_object() if hasattr(ap_n, 'get_object') else ap_n
+                    on_keys = [k for k in ap_n_obj.keys() if k != '/Off']
+                    if on_keys:
+                        on_value = on_keys[0]
+                        new_as = NameObject(on_value) if parent_v == on_value else NameObject('/Off')
+                        annot[NameObject('/AS')] = new_as
+                except Exception:
+                    pass
 
         tmp1 = io.BytesIO()
         writer.write(tmp1)
