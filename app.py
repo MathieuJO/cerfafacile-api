@@ -17,7 +17,6 @@ def index():
     return "CerfaExpress API - OK"
 
 def b64_to_image_reader(b64_data):
-    """Convertit une image base64 en ImageReader pour reportlab"""
     if not b64_data:
         return None
     if ',' in b64_data:
@@ -26,43 +25,46 @@ def b64_to_image_reader(b64_data):
     return ImageReader(io.BytesIO(img_bytes))
 
 def creer_overlay_signatures(sig_vendeur, sig_acheteur, page_width, page_height, page_type):
-    """
-    Crée un PDF overlay avec les signatures pour une page donnée.
-    page_type: 'p1' (page 1: vendeur haut, acheteur bas) ou 'p2' (page 2: acheteur haut, vendeur bas)
-    """
     packet = io.BytesIO()
     c = rl_canvas.Canvas(packet, pagesize=(page_width, page_height))
 
-    # Zones de signature sur le Cerfa (coordonnées PDF, origine bas-gauche)
-    # Page 1 : vendeur en haut (~y=290-340), acheteur en bas (~y=55-100)
-    # Page 2 : acheteur en haut (~y=290-340), vendeur en bas (~y=55-100)
-
     if page_type == 'p1':
-        zones = {
-            'vendeur':  (310, 292, 245, 48),   # x, y_bas, largeur, hauteur
-            'acheteur': (310, 55,  245, 42),
-        }
-    else:  # p2 - ordre inversé
-        zones = {
-            'acheteur': (310, 292, 245, 48),
-            'vendeur':  (310, 55,  245, 42),
-        }
+        zones  = {'vendeur': (310, 292, 245, 52), 'acheteur': (310, 53, 245, 48)}
+        labels = {'vendeur': 'VENDEUR', 'acheteur': 'ACHETEUR'}
+    else:
+        zones  = {'acheteur': (310, 292, 245, 52), 'vendeur': (310, 53, 245, 48)}
+        labels = {'acheteur': 'ACHETEUR', 'vendeur': 'VENDEUR'}
 
-    # Dessiner signature vendeur
-    if sig_vendeur:
-        img = b64_to_image_reader(sig_vendeur)
-        if img:
-            z = zones['vendeur']
-            c.drawImage(img, z[0], z[1], width=z[2], height=z[3],
-                       mask='auto', preserveAspectRatio=True)
+    for key, sig in [('vendeur', sig_vendeur), ('acheteur', sig_acheteur)]:
+        z = zones[key]
+        x, y, w, h = z
 
-    # Dessiner signature acheteur
-    if sig_acheteur:
-        img = b64_to_image_reader(sig_acheteur)
-        if img:
-            z = zones['acheteur']
-            c.drawImage(img, z[0], z[1], width=z[2], height=z[3],
-                       mask='auto', preserveAspectRatio=True)
+        # 1. Fond blanc semi-opaque — griser le texte du template CERFA derrière
+        c.saveState()
+        c.setFillColorRGB(1, 1, 1, alpha=0.85)
+        c.rect(x, y, w, h, fill=1, stroke=0)
+        c.restoreState()
+
+        # 2. Bordure fine grise
+        c.saveState()
+        c.setStrokeColorRGB(0.78, 0.78, 0.78)
+        c.setLineWidth(0.6)
+        c.rect(x, y, w, h, fill=0, stroke=1)
+        c.restoreState()
+
+        # 3. Label gras grisé en bas à gauche de la zone
+        c.saveState()
+        c.setFillColorRGB(0.70, 0.70, 0.70)
+        c.setFont('Helvetica-Bold', 7)
+        c.drawString(x + 4, y + 4, labels[key])
+        c.restoreState()
+
+        # 4. Signature par-dessus
+        if sig:
+            img = b64_to_image_reader(sig)
+            if img:
+                c.drawImage(img, x, y + 8, width=w, height=h - 10,
+                           mask='auto', preserveAspectRatio=True)
 
     c.save()
     packet.seek(0)
@@ -77,7 +79,6 @@ def generer_cerfa():
 
         def s(k): return str(d.get(k, "") or "").strip()
 
-        # ── Données formulaire
         immat           = s("immat").upper()
         marque          = s("marque")
         modele          = s("modele")
@@ -125,11 +126,9 @@ def generer_cerfa():
         lieu_cession = s("lieu_cession")
         date_str     = f"{vente_j}/{vente_m}/{vente_a}"
 
-        # Signatures
         sig_vendeur  = d.get("signature_vendeur")
         sig_acheteur = d.get("signature_acheteur")
 
-        # Radios
         radio_vendeur_type  = "/2" if vendeur_type == "physique" else "/1"
         radio_vendeur_sexe  = "/1" if vendeur_sexe == "M" else "/2"
         radio_acheteur_type = "/2" if acheteur_type == "physique" else "/1"
@@ -137,7 +136,6 @@ def generer_cerfa():
         radio_cession = "/1" if type_cession == "ceder" else "/2"
         radio_ci = "/1" if s("ci_present") == "oui" else "/2"
 
-        # ── Étape 1 : Remplir les champs texte du Cerfa
         reader = PdfReader(CERFA_PATH)
         writer = PdfWriter()
         writer.append(reader)
@@ -199,12 +197,10 @@ def generer_cerfa():
         writer.update_page_form_field_values(writer.pages[0], fields, auto_regenerate=False)
         writer.update_page_form_field_values(writer.pages[1], fields, auto_regenerate=False)
 
-        # ── Étape 2 : Aplatir le PDF (flatten) pour rendre les champs permanents
         tmp1 = io.BytesIO()
         writer.write(tmp1)
         tmp1.seek(0)
 
-        # ── Étape 3 : Injecter les signatures par overlay si présentes
         if sig_vendeur or sig_acheteur:
             reader2 = PR2(tmp1)
             writer2 = PdfWriter()
@@ -214,12 +210,7 @@ def generer_cerfa():
                 W, H = float(mb.width), float(mb.height)
                 page_type = 'p1' if page_idx == 0 else 'p2'
 
-                # Créer l'overlay signature pour cette page
-                overlay_buf = creer_overlay_signatures(
-                    sig_vendeur, sig_acheteur, W, H, page_type
-                )
-
-                # Fusionner avec la page originale
+                overlay_buf = creer_overlay_signatures(sig_vendeur, sig_acheteur, W, H, page_type)
                 overlay_reader = PR2(overlay_buf)
                 overlay_page   = overlay_reader.pages[0]
                 page.merge_page(overlay_page)
